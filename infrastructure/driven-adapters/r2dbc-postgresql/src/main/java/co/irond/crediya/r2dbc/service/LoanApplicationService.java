@@ -50,7 +50,7 @@ public class LoanApplicationService {
         return transactionalOperator.execute(transaction ->
                         applicationUseCase.saveApplication(application)
                 )
-                .doOnNext(applicationSaved -> log.info("Application of {} saved successfully.", applicationSaved.getEmail()))
+                .doOnNext(applicationSaved -> log.info("Loan Application of {} saved successfully.", applicationSaved.getEmail()))
                 .doOnError(throwable -> log.error(throwable.getMessage()))
                 .single();
     }
