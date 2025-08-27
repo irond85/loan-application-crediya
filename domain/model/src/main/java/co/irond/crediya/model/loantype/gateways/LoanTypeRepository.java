@@ -7,5 +7,4 @@ public interface LoanTypeRepository {
 
     Mono<LoanType> findByIdLoanType(Long id);
 
-    Mono<Boolean> existsById(Long id);
 }
