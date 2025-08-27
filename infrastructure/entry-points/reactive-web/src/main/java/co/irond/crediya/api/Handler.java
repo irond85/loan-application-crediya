@@ -27,11 +27,11 @@ public class Handler {
     private final LoanApplicationMapper loanApplicationMapper;
 
     @Operation(
-            operationId = "getAllUsers",
+            operationId = "getAllApplications",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "get all users successfully.",
+                            description = "get all applications successfully.",
                             content = @Content(
                                     schema = @Schema(implementation = LoanApplicationResponse.class)
                             )
