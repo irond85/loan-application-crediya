@@ -1,10 +1,9 @@
 package co.irond.crediya.r2dbc.repository.adapter;
 
 import co.irond.crediya.model.application.Application;
-import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.r2dbc.entity.ApplicationEntity;
 import co.irond.crediya.r2dbc.helper.ReactiveAdapterOperations;
-import co.irond.crediya.r2dbc.repository.ApplicationReactiveRepository;
+import co.irond.crediya.r2dbc.repository.ApplicationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
@@ -13,13 +12,13 @@ import reactor.core.publisher.Mono;
 
 @Repository
 @Slf4j
-public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperations<
+public class ApplicationRepositoryAdapter extends ReactiveAdapterOperations<
         Application,
         ApplicationEntity,
         Long,
-        ApplicationReactiveRepository
-        > implements ApplicationRepository {
-    public ApplicationReactiveRepositoryAdapter(ApplicationReactiveRepository repository, ObjectMapper mapper) {
+        ApplicationRepository
+        > implements co.irond.crediya.model.application.gateways.ApplicationRepository {
+    public ApplicationRepositoryAdapter(ApplicationRepository repository, ObjectMapper mapper) {
         super(repository, mapper, entity -> mapper.map(entity, Application.class));
     }
 

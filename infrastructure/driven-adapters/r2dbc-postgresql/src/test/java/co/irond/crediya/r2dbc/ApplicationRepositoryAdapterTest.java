@@ -2,8 +2,8 @@ package co.irond.crediya.r2dbc;
 
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.r2dbc.entity.ApplicationEntity;
-import co.irond.crediya.r2dbc.repository.ApplicationReactiveRepository;
-import co.irond.crediya.r2dbc.repository.adapter.ApplicationReactiveRepositoryAdapter;
+import co.irond.crediya.r2dbc.repository.ApplicationRepository;
+import co.irond.crediya.r2dbc.repository.adapter.ApplicationRepositoryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,13 +22,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ApplicationReactiveRepositoryAdapterTest {
+class ApplicationRepositoryAdapterTest {
 
     @InjectMocks
-    ApplicationReactiveRepositoryAdapter repositoryAdapter;
+    ApplicationRepositoryAdapter repositoryAdapter;
 
     @Mock
-    ApplicationReactiveRepository repository;
+    ApplicationRepository repository;
 
     @Mock
     ObjectMapper mapper;
