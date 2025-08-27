@@ -4,8 +4,7 @@ import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
-import co.irond.crediya.model.loantype.gateways.LoanTypeRepository;
-import co.irond.crediya.model.status.gateways.StatusRepository;
+import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,15 +13,12 @@ import reactor.core.publisher.Mono;
 public class ApplicationUseCase {
 
     private final ApplicationRepository applicationRepository;
-    private final LoanTypeRepository loanTypeRepository;
-    private final StatusRepository statusRepository;
+    private final LoanTypeUseCase loanTypeUseCase;
 
     public Mono<Application> saveApplication(Application application) {
-        return loanTypeRepository.existsById(application.getIdLoanType())
-                .flatMap(exists -> {
-                    if (Boolean.FALSE.equals(exists)) {
-                        return Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE));
-                    }
+        return loanTypeUseCase.getLoanTypeById(application.getIdLoanType())
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE)))
+                .flatMap(loanType -> {
                     application.setIdStatus(1L);
                     return applicationRepository.saveApplication(application);
                 });
