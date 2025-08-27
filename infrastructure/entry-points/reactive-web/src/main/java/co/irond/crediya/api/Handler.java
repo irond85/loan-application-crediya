@@ -4,7 +4,6 @@ import co.irond.crediya.api.dto.ApiResponseDto;
 import co.irond.crediya.api.dto.LoanApplicationRequestDto;
 import co.irond.crediya.api.utils.LoanApplicationMapper;
 import co.irond.crediya.api.utils.ValidationService;
-import co.irond.crediya.model.application.Application;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
 import co.irond.crediya.r2dbc.service.LoanApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +43,7 @@ public class Handler {
     }
 
     @Operation(
-            operationId = "createUser",
+            operationId = "createLoanApplication",
             responses = {
                     @ApiResponse(
                             responseCode = "201",
@@ -63,11 +62,11 @@ public class Handler {
             },
             requestBody = @RequestBody(
                     content = @Content(
-                            schema = @Schema(implementation = Application.class)
+                            schema = @Schema(implementation = LoanApplicationRequestDto.class)
                     )
             )
     )
-    public Mono<ServerResponse> listenCreateApplication(ServerRequest serverRequest) {
+    public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(LoanApplicationRequestDto.class)
                 .flatMap(validationService::validateObject)
                 .map(loanApplicationMapper::toApplication)
