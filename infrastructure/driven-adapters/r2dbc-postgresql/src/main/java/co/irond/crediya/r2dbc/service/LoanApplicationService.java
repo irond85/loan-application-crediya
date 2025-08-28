@@ -1,6 +1,7 @@
 package co.irond.crediya.r2dbc.service;
 
 import co.irond.crediya.model.application.Application;
+import co.irond.crediya.model.dto.LoanApplication;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.status.Status;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
@@ -46,9 +47,9 @@ public class LoanApplicationService {
         return statusUseCase.getStatusById(id);
     }
 
-    public Mono<Application> createApplication(Application application) {
+    public Mono<Application> createApplication(LoanApplication loanApplication) {
         return transactionalOperator.execute(transaction ->
-                        applicationUseCase.saveApplication(application)
+                        applicationUseCase.saveApplication(loanApplication)
                 )
                 .doOnNext(applicationSaved -> log.info("Loan Application of {} saved successfully.", applicationSaved.getEmail()))
                 .doOnError(throwable -> log.error(throwable.getMessage()))
