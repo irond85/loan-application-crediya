@@ -3,6 +3,7 @@ package co.irond.crediya.config;
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.irond.crediya.model.status.gateways.StatusRepository;
+import co.irond.crediya.model.user.UserGateway;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -53,6 +54,11 @@ class UseCasesConfigTest {
         @Bean
         public StatusRepository statesRepository() {
             return Mockito.mock(StatusRepository.class);
+        }
+
+        @Bean
+        public UserGateway userGateway() {
+            return Mockito.mock(UserGateway.class);
         }
     }
 
