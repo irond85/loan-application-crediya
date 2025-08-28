@@ -1,15 +1,15 @@
 package co.irond.crediya.api.utils;
 
 import co.irond.crediya.api.dto.LoanApplicationRequestDto;
-import co.irond.crediya.model.application.Application;
+import co.irond.crediya.model.dto.LoanApplication;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface LoanApplicationMapper {
 
-    @Mapping(source = "loanApplicationRequestDto.email", target = "email")
-    Application toApplication(LoanApplicationRequestDto loanApplicationRequestDto);
+    @Mapping(source = "loanApplicationRequestDto.dni", target = "dni")
+    LoanApplication toLoanApplication(LoanApplicationRequestDto loanApplicationRequestDto);
 
-    LoanApplicationRequestDto toLoanApplicationRequestDto(Application user);
+    LoanApplicationRequestDto toLoanApplicationRequestDto(LoanApplication user);
 }

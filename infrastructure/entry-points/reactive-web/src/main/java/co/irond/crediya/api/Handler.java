@@ -69,7 +69,7 @@ public class Handler {
     public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(LoanApplicationRequestDto.class)
                 .flatMap(validationService::validateObject)
-                .map(loanApplicationMapper::toApplication)
+                .map(loanApplicationMapper::toLoanApplication)
                 .flatMap(loanApplicationService::createApplication)
                 .flatMap(savedApplication -> {
                     ApiResponseDto<Object> response = ApiResponseDto.builder()

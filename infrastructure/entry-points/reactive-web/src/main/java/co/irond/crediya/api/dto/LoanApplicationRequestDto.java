@@ -1,6 +1,5 @@
 package co.irond.crediya.api.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,9 +19,8 @@ public class LoanApplicationRequestDto {
     private BigDecimal amount;
     @NotNull(message = "term can't be null")
     private Integer term;
-    @NotEmpty(message = "email can't be empty")
-    @Email
-    private String email;
+    @NotEmpty(message = "dni can't be empty")
+    private String dni;
     @NotNull(message = "idLoanType can't be null")
     private Long idLoanType;
 
