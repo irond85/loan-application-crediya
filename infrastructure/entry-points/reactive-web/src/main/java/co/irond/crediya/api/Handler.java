@@ -77,7 +77,7 @@ public class Handler {
                 .flatMap(loanApplicationService::createApplication)
                 .flatMap(savedApplication -> {
                     ApiResponseDto<Object> response = ApiResponseDto.builder()
-                            .status(201)
+                            .status("201")
                             .message(OperationsMessage.RESOURCE_CREATED.getMessage())
                             .data(savedApplication).build();
                     return ServerResponse.status(201).contentType(MediaType.APPLICATION_JSON).bodyValue(response);
