@@ -10,6 +10,7 @@ import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 @RequiredArgsConstructor
 public class ApplicationUseCase {
@@ -24,30 +25,23 @@ public class ApplicationUseCase {
         Mono<Boolean> loanTypeMono = loanTypeUseCase.getLoanTypeById(loanApplication.getIdLoanType()).hasElement();
 
         return Mono.zip(userEmailMono, loanTypeMono)
-                .flatMap(result -> {
-                    String userEmail = result.getT1();
-                    boolean loanType = result.getT2();
-                    if (userEmail.isBlank()) {
-                        return Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND));
-                    }
-                    if (!loanType) {
-                        return Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE));
-                    }
-
-                    Application application = Application.builder()
-                            .email(userEmail)
-                            .term(loanApplication.getTerm())
-                            .amount(loanApplication.getAmount())
-                            .idLoanType(loanApplication.getIdLoanType())
-                            .idStatus(1L).build();
-                    return applicationRepository.saveApplication(application);
-                });
+                .filter(tuple -> !tuple.getT1().isBlank())
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
+                .filter(Tuple2::getT2)
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE)))
+                .flatMap(tuple ->
+                        applicationRepository.saveApplication(Application.builder()
+                                .email(tuple.getT1())
+                                .term(loanApplication.getTerm())
+                                .amount(loanApplication.getAmount())
+                                .idLoanType(loanApplication.getIdLoanType())
+                                .idStatus(1L).build())
+                );
     }
 
     public Flux<Application> getAllApplications() {
         return applicationRepository.findAllApplications();
     }
-
 
 
 }
