@@ -1,5 +1,7 @@
 package co.irond.crediya.api;
 
+import co.irond.crediya.api.config.LoanApplicationPath;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -13,14 +15,18 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
+@RequiredArgsConstructor
 public class RouterRest {
+
+    private final LoanApplicationPath loanApplicationPath;
+
     @Bean
     @RouterOperations({
             @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.GET, beanClass = Handler.class, beanMethod = "listenGetAll"),
             @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.POST, beanClass = Handler.class, beanMethod = "listenCreateLoanApplication")
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(GET("/api/v1/solicitud"), handler::listenGetAll)
-                .and(route(POST("/api/v1/solicitud"), handler::listenCreateLoanApplication));
+        return route(GET(loanApplicationPath.getSolicitud()), handler::listenGetAll)
+                .and(route(POST(loanApplicationPath.getSolicitud()), handler::listenCreateLoanApplication));
     }
 }

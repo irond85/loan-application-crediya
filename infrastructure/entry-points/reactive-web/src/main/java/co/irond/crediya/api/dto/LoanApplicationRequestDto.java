@@ -1,5 +1,6 @@
 package co.irond.crediya.api.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 public class LoanApplicationRequestDto {
 
     @NotNull(message = "amount can't be null")
+    @Min(value = 1, message = "amount can't be negative or Zero. Dahhh!")
     private BigDecimal amount;
     @NotNull(message = "term can't be null")
     private Integer term;
