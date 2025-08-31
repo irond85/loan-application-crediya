@@ -54,7 +54,7 @@ class ApplicationUseCaseTest {
         application.setId(1L);
         application.setAmount(BigDecimal.TEN);
         application.setTerm(12);
-        application.setEmail("myEmail@email.com");
+        application.setEmail(userEmail);
         application.setIdStatus(1L);
         application.setIdLoanType(1L);
 
@@ -72,6 +72,7 @@ class ApplicationUseCaseTest {
         loanApplication.setIdLoanType(1L);
         loanApplication.setTerm(12);
         loanApplication.setAmount(BigDecimal.TEN);
+        loanApplication.setEmailLogged(userEmail);
     }
 
     @Test
@@ -126,6 +127,21 @@ class ApplicationUseCaseTest {
                 .verifyComplete();
 
         verify(applicationRepository, times(1)).findAllApplications();
+    }
+
+    @Test
+    void saveApplication_shouldReturnExceptionEmail() {
+        application.setEmail("correo@correo.com");
+
+        when(loanTypeUseCase.getLoanTypeById(anyLong())).thenThrow(new CrediYaException(ErrorCode.USER_NOT_MATCH));
+
+        Executable executable = () -> applicationUseCase.saveApplication(loanApplication);
+
+        CrediYaException exception = assertThrows(CrediYaException.class, executable);
+        assertEquals("Can't do a loan application for different user.", exception.getMessage());
+
+        verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
+        verify(applicationRepository, times(0)).saveApplication(any(Application.class));
     }
 
 }
