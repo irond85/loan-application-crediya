@@ -6,3 +6,4 @@ Api manages the loan applications for CrediYa
 
 # Features
 * 1.0.0 -> Implements register loan applications in endpoint /api/v1/solicitud - POST
+* 1.0.1 -> Improvements to the code, business exceptions, and validations are implemented when creating a loan application.

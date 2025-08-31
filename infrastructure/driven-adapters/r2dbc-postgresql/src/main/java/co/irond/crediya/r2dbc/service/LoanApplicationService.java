@@ -1,5 +1,6 @@
 package co.irond.crediya.r2dbc.service;
 
+import co.irond.crediya.constanst.OperationsMessage;
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.LoanApplication;
 import co.irond.crediya.model.loantype.LoanType;
@@ -51,8 +52,9 @@ public class LoanApplicationService {
         return transactionalOperator.execute(transaction ->
                         applicationUseCase.saveApplication(loanApplication)
                 )
-                .doOnNext(applicationSaved -> log.info("Loan Application of {} saved successfully.", applicationSaved.getEmail()))
-                .doOnError(throwable -> log.error(throwable.getMessage()))
+                .doOnNext(applicationSaved -> log.info(OperationsMessage.SAVE_OK.getMessage(), applicationSaved.getEmail()))
+                .doOnError(throwable -> log.error(OperationsMessage.OPERATION_ERROR.getMessage(),
+                        "CreateLoanApplication. " + throwable.getMessage()))
                 .single();
     }
 
