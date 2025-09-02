@@ -17,6 +17,9 @@ import reactor.core.publisher.Mono;
 public class RestConsumer implements UserGateway {
     private final WebClient client;
 
+    @Value("${adapter.restconsumer.v1}")
+    private String pathVersion;
+
     @Value("${adapter.restconsumer.userEmailByDni}")
     private String pathGetUserEmailByDni;
 
@@ -25,7 +28,7 @@ public class RestConsumer implements UserGateway {
     public Mono<String> getUserEmailByDni(String dni) {
         return client
                 .get()
-                .uri(pathGetUserEmailByDni, dni)
+                .uri(pathVersion + pathGetUserEmailByDni, dni)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
                     if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {

@@ -6,6 +6,8 @@ import co.irond.crediya.model.dto.LoanApplication;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.status.Status;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
+import co.irond.crediya.security.jwt.JwtProvider;
+import co.irond.crediya.security.repository.SecurityContextRepository;
 import co.irond.crediya.usecase.application.ApplicationUseCase;
 import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import co.irond.crediya.usecase.status.StatusUseCase;
@@ -25,6 +27,8 @@ public class LoanApplicationService {
     private final LoanTypeUseCase loanTypeUseCase;
     private final StatusUseCase statusUseCase;
     private final TransactionalOperator transactionalOperator;
+    private final SecurityContextRepository securityContextRepository;
+    private final JwtProvider jwtProvider;
 
     public Flux<LoanApplicationResponse> getAllApplications() {
         return applicationUseCase.getAllApplications()
@@ -49,6 +53,8 @@ public class LoanApplicationService {
     }
 
     public Mono<Application> createApplication(LoanApplication loanApplication) {
+        String emailUserLogged = jwtProvider.getSubject(securityContextRepository.getUserToken());
+        loanApplication.setEmailLogged(emailUserLogged);
         return transactionalOperator.execute(transaction ->
                         applicationUseCase.saveApplication(loanApplication)
                 )

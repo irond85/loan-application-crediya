@@ -4,6 +4,8 @@ import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.LoanApplication;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
+import co.irond.crediya.security.jwt.JwtProvider;
+import co.irond.crediya.security.repository.SecurityContextRepository;
 import co.irond.crediya.usecase.application.ApplicationUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +36,17 @@ class LoanApplicationServiceTest {
     @Mock
     ApplicationUseCase applicationUseCase;
 
+    @Mock
+    SecurityContextRepository securityContextRepository;
+
+    @Mock
+    JwtProvider jwtProvider;
+
     private Application application;
     private LoanApplication loanApplication;
+
+    private String token = "Bearer token_xyz";
+    private String emailFromToken = "myEmail@token.com";
 
     @BeforeEach
     void initMocks() {
@@ -45,13 +56,16 @@ class LoanApplicationServiceTest {
         application.setAmount(new BigDecimal("4500000"));
         application.setIdStatus(1L);
         application.setIdLoanType(1L);
-        application.setEmail("myEmail@mail.com");
+        application.setEmail(emailFromToken);
 
         loanApplication = new LoanApplication();
         loanApplication.setDni("12345");
         loanApplication.setIdLoanType(1L);
         loanApplication.setTerm(12);
         loanApplication.setAmount(new BigDecimal("4500000"));
+
+        when(securityContextRepository.getUserToken()).thenReturn(token);
+        when(jwtProvider.getSubject(token)).thenReturn(emailFromToken);
     }
 
     @Test
