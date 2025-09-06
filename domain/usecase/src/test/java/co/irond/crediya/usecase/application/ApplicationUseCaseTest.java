@@ -3,6 +3,7 @@ package co.irond.crediya.usecase.application;
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.model.dto.LoanApplication;
+import co.irond.crediya.model.dto.UserDto;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.loantype.LoanType;
@@ -45,6 +46,7 @@ class ApplicationUseCaseTest {
     private LoanType loanType;
     private Application application;
     private LoanApplication loanApplication;
+    private UserDto userDto;
 
     private String userEmail = "myEmail@mail.com";
 
@@ -73,6 +75,8 @@ class ApplicationUseCaseTest {
         loanApplication.setTerm(12);
         loanApplication.setAmount(BigDecimal.TEN);
         loanApplication.setEmailLogged(userEmail);
+
+        userDto = new UserDto("Sheshin", "Last", null, "my address", "300", userEmail, BigDecimal.TEN, "12345", 1L);
     }
 
     @Test
@@ -87,7 +91,7 @@ class ApplicationUseCaseTest {
         );
 
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenReturn(Mono.just(loanType));
-        when(userGateway.getUserEmailByDni(anyString())).thenReturn(Mono.just(userEmail));
+        when(userGateway.getUserByDni(anyString())).thenReturn(Mono.just(userDto));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(application));
 
         Mono<Application> response = applicationUseCase.saveApplication(loanApplication);
@@ -97,7 +101,7 @@ class ApplicationUseCaseTest {
                 .verifyComplete();
 
         verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
-        verify(userGateway, times(1)).getUserEmailByDni(anyString());
+        verify(userGateway, times(1)).getUserByDni(anyString());
         verify(applicationRepository, times(1)).saveApplication(any(Application.class));
     }
 
