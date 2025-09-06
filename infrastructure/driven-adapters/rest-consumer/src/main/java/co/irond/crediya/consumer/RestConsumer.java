@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 @Service
 @RequiredArgsConstructor
 public class RestConsumer implements UserGateway {
@@ -26,6 +24,9 @@ public class RestConsumer implements UserGateway {
 
     @Value("${adapter.restconsumer.userByDni}")
     private String pathGetUserByDni;
+
+    @Value("${adapter.restconsumer.userByEmail}")
+    private String pathGetUserByEmail;
 
     @Override
     @CircuitBreaker(name = "getUserByDni")
@@ -41,8 +42,9 @@ public class RestConsumer implements UserGateway {
                         return Mono.error(new CrediYaException(ErrorCode.DATABASE_ERROR));
                     }
                 })
-                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {})
-                .filter(Objects::nonNull)
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {
+                })
+                .filter(data -> data.getData() != null)
                 .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
                 .flatMap(apiResponse ->
                         Mono.just(apiResponse.getData())
@@ -53,7 +55,7 @@ public class RestConsumer implements UserGateway {
     public Mono<UserDto> getUserByEmail(String email) {
         return client
                 .get()
-                .uri(pathVersion + pathGetUserByDni, email)
+                .uri(pathVersion + pathGetUserByEmail, email)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
                     if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
@@ -62,8 +64,9 @@ public class RestConsumer implements UserGateway {
                         return Mono.error(new CrediYaException(ErrorCode.DATABASE_ERROR));
                     }
                 })
-                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {})
-                .filter(Objects::nonNull)
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {
+                })
+                .filter(data -> data.getData() != null)
                 .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
                 .flatMap(apiResponse ->
                         Mono.just(apiResponse.getData())

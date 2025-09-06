@@ -15,5 +15,5 @@ public interface ApplicationRepository {
 
     Mono<List<FilteredApplicationDto>> findAllApplicationsPaging(long status, long offset, int limit);
 
-    Mono<Long> countAll();
+    Mono<Long> countAll(long status);
 }

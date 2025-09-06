@@ -14,6 +14,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -50,11 +52,35 @@ public class ApplicationUseCase {
     }
 
     public Mono<List<FilteredApplicationDto>> getAllApplicationsPaging(long status, long offset, int limit) {
-        return applicationRepository.findAllApplicationsPaging(status, offset, limit);
+        Mono<List<FilteredApplicationDto>> listApplicationsMono = applicationRepository.findAllApplicationsPaging(status, offset, limit);
+
+        return listApplicationsMono.flatMap(applications -> {
+            return Flux.fromIterable(applications)
+                    .flatMap(application -> {
+                        return userGateway.getUserByEmail(application.email())
+                                .map(user ->
+                                        new FilteredApplicationDto(
+                                                application.amount(),
+                                                application.term(),
+                                                application.email(),
+                                                user.name(),
+                                                application.type(),
+                                                application.interest(),
+                                                application.status(),
+                                                user.baseSalary(),
+                                                application.amount()
+                                                        .multiply(application.interest())
+                                                        .divide(new BigDecimal(application.term()), RoundingMode.FLOOR)
+                                        )
+                                );
+                    })
+                    .collectList();
+        });
+
     }
 
-    public Mono<Long> countAll() {
-        return applicationRepository.countAll();
+    public Mono<Long> countAll(long status) {
+        return applicationRepository.countAll(status);
     }
 
 }

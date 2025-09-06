@@ -15,18 +15,19 @@ public interface ApplicationRepository extends ReactiveCrudRepository<Applicatio
                  a.amount,
                  a.term,
                  a.email,
-                 t.name AS loanType,
-                 t.interest_rate AS interestRate,
+                 T.name AS type,
+                 T.interest_rate AS interest,
                  s.name AS status
              FROM application a
-             LEFT JOIN loan_type t ON a.id_loan_type = t.id_loan_type
-             LEFT JOIN status s ON a.id_status = s.id_status
+             INNER JOIN loan_type AS T ON a.id_loan_type = T.id_loan_type
+             INNER JOIN status AS s ON a.id_status = s.id_status
              WHERE a.id_status = :status
-             LIMIT :limit OFFSET :offset
+             ORDER BY a.id_application ASC
+             OFFSET :offset LIMIT :limit
             """)
     Flux<FilteredApplicationDto> findAllByPage(long status, long offset, int limit);
 
-    @Query("SELECT COUNT(*) FROM application")
-    Mono<Long> countAll();
+    @Query("SELECT COUNT(*) FROM application a WHERE a.id_status = :status")
+    Mono<Long> countAll(long status);
 
 }
