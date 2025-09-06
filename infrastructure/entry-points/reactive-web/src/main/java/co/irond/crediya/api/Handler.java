@@ -1,10 +1,14 @@
 package co.irond.crediya.api;
 
 import co.irond.crediya.api.dto.ApiResponseDto;
+import co.irond.crediya.model.dto.FilteredApplicationDto;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
 import co.irond.crediya.api.dto.LoanApplicationRequestDto;
 import co.irond.crediya.api.utils.LoanApplicationMapper;
 import co.irond.crediya.api.utils.ValidationService;
 import co.irond.crediya.constanst.OperationsMessage;
+import co.irond.crediya.model.application.Application;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
 import co.irond.crediya.r2dbc.service.LoanApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +24,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -43,7 +49,15 @@ public class Handler {
             }
     )
     public Mono<ServerResponse> listenGetAll(ServerRequest serverRequest) {
-        return ServerResponse.ok().body(loanApplicationService.getAllApplications(), LoanApplicationResponse.class);
+        int page = serverRequest.queryParam("page").map(Integer::parseInt).orElse(1);
+        int size = serverRequest.queryParam("size").map(Integer::parseInt).orElse(10);
+        long offset = (long) page * size;
+
+        Mono<Page<FilteredApplicationDto>> pageMono = loanApplicationService.getAllApplicationsPaging(offset, size, 1);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(pageMono, new ParameterizedTypeReference<Page<FilteredApplicationDto>>() {});
     }
 
     @Operation(
