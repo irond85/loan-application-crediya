@@ -28,3 +28,5 @@ include ':rest-consumer'
 project(':rest-consumer').projectDir = file('./infrastructure/driven-adapters/rest-consumer')
 include ':constanst'
 project(':constanst').projectDir = file('./infrastructure/helpers/constanst')
+include ':security'
+project(':security').projectDir = file('./infrastructure/driven-adapters/security')

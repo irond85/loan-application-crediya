@@ -5,7 +5,9 @@ import co.irond.crediya.api.dto.LoanApplicationRequestDto;
 import co.irond.crediya.api.utils.LoanApplicationMapper;
 import co.irond.crediya.api.utils.ValidationService;
 import co.irond.crediya.constanst.OperationsMessage;
+import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
+import co.irond.crediya.r2dbc.dto.PageResponse;
 import co.irond.crediya.r2dbc.service.LoanApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,7 +16,9 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -30,19 +34,31 @@ public class Handler {
     private final LoanApplicationMapper loanApplicationMapper;
 
     @Operation(
-            operationId = "getAllApplications",
+            operationId = "getAllApplicationsPaging",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "get all applications successfully.",
+                            description = "get all applications by status successfully.",
                             content = @Content(
                                     schema = @Schema(implementation = LoanApplicationResponse.class)
                             )
                     )
             }
     )
-    public Mono<ServerResponse> listenGetAll(ServerRequest serverRequest) {
-        return ServerResponse.ok().body(loanApplicationService.getAllApplications(), LoanApplicationResponse.class);
+    @PreAuthorize("hasAuthority('ADVISOR')")
+    public Mono<ServerResponse> listenGetAllByStatus(ServerRequest serverRequest) {
+        int page = serverRequest.queryParam("page").map(Integer::parseInt).orElse(1);
+        int size = serverRequest.queryParam("size").map(Integer::parseInt).orElse(5);
+        int status = serverRequest.queryParam("status").map(Integer::parseInt).orElse(1);
+
+        page = page == 0 ? 1 : page;
+
+        Mono<PageResponse<FilteredApplicationDto>> pageMono = loanApplicationService.getAllApplicationsPaging(page, size, status);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(pageMono, new ParameterizedTypeReference<PageResponse<FilteredApplicationDto>>() {
+                });
     }
 
     @Operation(
@@ -69,6 +85,7 @@ public class Handler {
                     )
             )
     )
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     public Mono<ServerResponse> listenCreateLoanApplication(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(LoanApplicationRequestDto.class)
                 .doOnNext(request -> log.info(OperationsMessage.REQUEST_RECEIVED.getMessage(), request.toString()))

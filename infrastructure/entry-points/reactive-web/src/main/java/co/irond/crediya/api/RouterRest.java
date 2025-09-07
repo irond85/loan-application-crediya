@@ -22,11 +22,11 @@ public class RouterRest {
 
     @Bean
     @RouterOperations({
-            @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.GET, beanClass = Handler.class, beanMethod = "listenGetAll"),
-            @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.POST, beanClass = Handler.class, beanMethod = "listenCreateLoanApplication")
+            @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.POST, beanClass = Handler.class, beanMethod = "listenCreateLoanApplication"),
+            @RouterOperation(path = "/api/v1/solicitud", method = RequestMethod.GET, beanClass = Handler.class, beanMethod = "listenGetAllByStatus")
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(GET(loanApplicationPath.getSolicitud()), handler::listenGetAll)
+        return route(GET(loanApplicationPath.getSolicitud()), handler::listenGetAllByStatus)
                 .and(route(POST(loanApplicationPath.getSolicitud()), handler::listenCreateLoanApplication));
     }
 }
