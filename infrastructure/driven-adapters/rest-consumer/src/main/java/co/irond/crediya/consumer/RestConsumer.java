@@ -1,11 +1,13 @@
 package co.irond.crediya.consumer;
 
+import co.irond.crediya.model.dto.UserDto;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.user.UserGateway;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -20,15 +22,18 @@ public class RestConsumer implements UserGateway {
     @Value("${adapter.restconsumer.v1}")
     private String pathVersion;
 
-    @Value("${adapter.restconsumer.userEmailByDni}")
-    private String pathGetUserEmailByDni;
+    @Value("${adapter.restconsumer.userByDni}")
+    private String pathGetUserByDni;
+
+    @Value("${adapter.restconsumer.userByEmail}")
+    private String pathGetUserByEmail;
 
     @Override
-    @CircuitBreaker(name = "getUserEmailByDni")
-    public Mono<String> getUserEmailByDni(String dni) {
+    @CircuitBreaker(name = "getUserByDni")
+    public Mono<UserDto> getUserByDni(String dni) {
         return client
                 .get()
-                .uri(pathVersion + pathGetUserEmailByDni, dni)
+                .uri(pathVersion + pathGetUserByDni, dni)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
                     if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
@@ -37,12 +42,34 @@ public class RestConsumer implements UserGateway {
                         return Mono.error(new CrediYaException(ErrorCode.DATABASE_ERROR));
                     }
                 })
-                .bodyToMono(ApiResponse.class)
-                .flatMap(apiResponse -> {
-                    if (apiResponse.getData() != null) {
-                        return Mono.just(apiResponse.getData().toString());
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {
+                })
+                .filter(data -> data.getData() != null)
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
+                .flatMap(apiResponse ->
+                        Mono.just(apiResponse.getData())
+                );
+    }
+
+    @Override
+    public Mono<UserDto> getUserByEmail(String email) {
+        return client
+                .get()
+                .uri(pathVersion + pathGetUserByEmail, email)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
+                    if (clientResponse.statusCode() == HttpStatus.NOT_FOUND) {
+                        return Mono.empty();
+                    } else {
+                        return Mono.error(new CrediYaException(ErrorCode.DATABASE_ERROR));
                     }
-                    return Mono.just("");
-                });
+                })
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<UserDto>>() {
+                })
+                .filter(data -> data.getData() != null)
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
+                .flatMap(apiResponse ->
+                        Mono.just(apiResponse.getData())
+                );
     }
 }

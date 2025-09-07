@@ -2,10 +2,12 @@ package co.irond.crediya.r2dbc.service;
 
 import co.irond.crediya.constanst.OperationsMessage;
 import co.irond.crediya.model.application.Application;
+import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.model.dto.LoanApplication;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.status.Status;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
+import co.irond.crediya.r2dbc.dto.PageResponse;
 import co.irond.crediya.security.jwt.JwtProvider;
 import co.irond.crediya.security.repository.SecurityContextRepository;
 import co.irond.crediya.usecase.application.ApplicationUseCase;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +66,24 @@ public class LoanApplicationService {
                 .doOnError(throwable -> log.error(OperationsMessage.OPERATION_ERROR.getMessage(),
                         "CreateLoanApplication. " + throwable.getMessage()))
                 .single();
+    }
+
+    public Mono<PageResponse<FilteredApplicationDto>> getAllApplicationsPaging(int page, int size, long status) {
+        Mono<Long> totalCount = applicationUseCase.countAll(status);
+
+        long offset = (long) (page - 1) * size;
+
+        Mono<List<FilteredApplicationDto>> itemsMono = applicationUseCase.getAllApplicationsPaging(status, offset, size);
+
+        return Mono.zip(itemsMono, totalCount)
+                .map(tuple ->
+                        new PageResponse<FilteredApplicationDto>(tuple.getT1(), page, size, tuple.getT2())
+                );
+    }
+
+
+    public Mono<Long> countAll(long status) {
+        return applicationUseCase.countAll(status);
     }
 
 }

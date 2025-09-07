@@ -1,6 +1,7 @@
 package co.irond.crediya.r2dbc.repository.adapter;
 
 import co.irond.crediya.model.application.Application;
+import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.r2dbc.entity.ApplicationEntity;
 import co.irond.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import co.irond.crediya.r2dbc.repository.ApplicationRepository;
@@ -9,6 +10,8 @@ import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Repository
 @Slf4j
@@ -30,5 +33,15 @@ public class ApplicationRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Flux<Application> findAllApplications() {
         return findAll();
+    }
+
+    @Override
+    public Mono<List<FilteredApplicationDto>> findAllApplicationsPaging(long status, long offset, int limit) {
+        return repository.findAllByPage(status, offset, limit).collectList();
+    }
+
+    @Override
+    public Mono<Long> countAll(long status) {
+        return repository.countAll(status);
     }
 }
