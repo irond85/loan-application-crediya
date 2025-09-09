@@ -71,7 +71,7 @@ class LoanApplicationServiceTest {
         loanApplication.setAmount(new BigDecimal("4500000"));
 
         filteredApplicationDto =
-                new FilteredApplicationDto(new BigDecimal("5000"), 12,
+                new FilteredApplicationDto(1L, new BigDecimal("5000"), 12,
                         emailFromToken, "Sheshin",
                         "Libre inversion", new BigDecimal(2),
                         "Pendiente de revision", new BigDecimal(10000),

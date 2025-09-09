@@ -8,7 +8,9 @@ public enum ErrorCode {
     USER_NOT_FOUND("BS_U_404_01", "The user with dni doesn't exists.", 404),
     DATABASE_ERROR("T_S_001", "An error has occurred while communicating with the database.", 500),
     INVALID_TOKEN("BS_T_403_01", "Invalid authentication in the request.", 403),
-    USER_NOT_MATCH("BS_U_401_01", "Can't do a loan application for different user.", 401);
+    USER_NOT_MATCH("BS_U_401_01", "Can't do a loan application for different user.", 401),
+    LOAN_APPLICATION_NOT_FOUND("BS_LA_404_01", "The loan application with id doesn't exists.", 404),
+    STATUS_NOT_CHANGE("BS_LA_409_01", "The loan application with id already has this status.", 409);
 
     private final String internCode;
     private final String message;

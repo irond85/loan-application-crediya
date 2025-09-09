@@ -83,7 +83,7 @@ class ApplicationUseCaseTest {
         userDto = new UserDto("Sheshin", "Last", null, "my address", "300", userEmail, BigDecimal.TEN, "12345", 1L);
 
         filteredApplicationDto =
-                new FilteredApplicationDto(new BigDecimal("1000"), 12,
+                new FilteredApplicationDto(1L, new BigDecimal("1000"), 12,
                         userEmail, "Pedro",
                         "Libre inversion", new BigDecimal(2),
                         "Pendiente de revision", new BigDecimal(10000),

@@ -3,10 +3,13 @@ INSERT INTO status
 VALUES('Pendiente por revisión', 'Solicitud pendiente por revision de un asesor');
 INSERT INTO status
 ("name", description)
-VALUES('Rechazadas', 'Solicitud rechazada');
+VALUES('Rechazada', 'Solicitud rechazada');
 INSERT INTO status
 ("name", description)
 VALUES('Revision manual', 'Solicitud debe realizarse manualmente');
+INSERT INTO status
+("name", description)
+VALUES('Aprobada', 'Solicitud aprobada');
 
 INSERT INTO loan_type
 ("name", min_amount, max_amount, interest_rate, auto_valid)
