@@ -6,8 +6,10 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum StatusEnum {
-    APPROVED(4, "Aprobada"),
-    REJECTED(2, "Rechazada");
+    PENDING_REVIEW(1, "Pendiete por revisión"),
+    REJECTED(2, "Rechazada"),
+    MANUAL_REVIEW(3, "Revisión Manual"),
+    APPROVED(4, "Aprobada");
 
     private final long id;
     private final String name;
