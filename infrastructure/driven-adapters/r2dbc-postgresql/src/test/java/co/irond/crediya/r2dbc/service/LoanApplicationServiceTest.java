@@ -160,6 +160,12 @@ class LoanApplicationServiceTest {
         when(applicationUseCase.updateLoanApplication(any(UpdateLoanApplicationRequestDto.class)))
                 .thenReturn(Mono.just(filteredApplicationDto));
 
+        when(transactionalOperator.execute(any(TransactionCallback.class)))
+                .thenAnswer(invocation -> {
+                    TransactionCallback<?> callback = invocation.getArgument(0);
+                    return ((Mono<FilteredApplicationDto>) callback.doInTransaction(null)).flux();
+                });
+
         Mono<FilteredApplicationDto> result = loanApplicationService.updateLoanApplication(updateLoanApplicationRequestDto);
         StepVerifier.create(result)
                 .expectNext(filteredApplicationDto)

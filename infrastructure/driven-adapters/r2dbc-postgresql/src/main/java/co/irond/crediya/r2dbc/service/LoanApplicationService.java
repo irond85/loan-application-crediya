@@ -87,8 +87,12 @@ public class LoanApplicationService {
         return applicationUseCase.countAll(status);
     }
 
-    public Mono<FilteredApplicationDto> updateLoanApplication(UpdateLoanApplicationRequestDto updateLoanApplicationRequestDto) {
-        return applicationUseCase.updateLoanApplication(updateLoanApplicationRequestDto);
+    public Mono<FilteredApplicationDto> updateLoanApplication(UpdateLoanApplicationRequestDto loanApplicationRequestDto) {
+        return transactionalOperator.execute(transaction ->
+                        applicationUseCase.updateLoanApplication(loanApplicationRequestDto)
+                ).doOnNext(applicationUpdated -> log.info(OperationsMessage.SAVE_OK.getMessage(), applicationUpdated.toString()))
+                .doOnError(throwable -> log.error(OperationsMessage.OPERATION_ERROR.getMessage(), throwable.getMessage()))
+                .single();
     }
 
 }
