@@ -6,6 +6,7 @@ import co.irond.crediya.model.dto.*;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.loantype.LoanType;
+import co.irond.crediya.model.notification.NotificationGateway;
 import co.irond.crediya.model.user.UserGateway;
 import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,9 @@ class ApplicationUseCaseTest {
 
     @Mock
     private UserGateway userGateway;
+
+    @Mock
+    private NotificationGateway notificationGateway;
 
     private LoanType loanType;
     private Application application;
@@ -192,6 +196,7 @@ class ApplicationUseCaseTest {
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenReturn(Mono.just(loanType));
         when(applicationRepository.updateLoanApplication(any(UpdateLoanApplicationRequestDto.class)))
                 .thenReturn(Mono.just(application));
+        when(notificationGateway.sendNotification(any(FilteredApplicationDto.class))).thenReturn(Mono.empty());
 
         Mono<FilteredApplicationDto> response = applicationUseCase.updateLoanApplication(updateLoanApplicationRequestDto);
 
@@ -204,6 +209,7 @@ class ApplicationUseCaseTest {
         verify(userGateway, times(1)).getUserByEmail(anyString());
         verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
         verify(applicationRepository, times(1)).updateLoanApplication(any(UpdateLoanApplicationRequestDto.class));
+        verify(notificationGateway, times(1)).sendNotification(any(FilteredApplicationDto.class));
     }
 
     @Test

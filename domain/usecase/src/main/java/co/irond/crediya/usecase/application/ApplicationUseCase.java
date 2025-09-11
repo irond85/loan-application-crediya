@@ -6,6 +6,7 @@ import co.irond.crediya.model.dto.*;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.loantype.LoanType;
+import co.irond.crediya.model.notification.NotificationGateway;
 import co.irond.crediya.model.user.UserGateway;
 import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class ApplicationUseCase {
     private final ApplicationRepository applicationRepository;
     private final LoanTypeUseCase loanTypeUseCase;
     private final UserGateway userGateway;
+    private final NotificationGateway notificationGateway;
 
     public Mono<Application> saveApplication(LoanApplication loanApplication) {
 
@@ -96,26 +98,38 @@ public class ApplicationUseCase {
                     Mono<LoanType> loanTypeMono = loanTypeUseCase.getLoanTypeById(application.getIdLoanType());
                     Mono<Application> applicationMono = applicationRepository.updateLoanApplication(updateLoanApplicationRequestDto);
 
-                    return Mono.zip(applicationMono, userDtoMono, loanTypeMono)
-                            .flatMap(tupleData -> {
+                    return createUpdatedResponse(applicationMono, userDtoMono, loanTypeMono, updateLoanApplicationRequestDto.idStatus());
+                });
+    }
 
-                                Application applicationUpdated = tupleData.getT1();
+    private Mono<FilteredApplicationDto> createUpdatedResponse(Mono<Application> applicationMono, Mono<UserDto> userDtoMono, Mono<LoanType> loanTypeMono, long status) {
+        return Mono.zip(applicationMono, userDtoMono, loanTypeMono)
+                .flatMap(tupleData -> {
+                    Application applicationUpdated = tupleData.getT1();
+                    UserDto user = tupleData.getT2();
+                    LoanType loanType = tupleData.getT3();
+                    String estado = StatusEnum.getById(status).getName();
 
-                                return Mono.just(new FilteredApplicationDto(
-                                        applicationUpdated.getId(),
-                                        applicationUpdated.getAmount(),
-                                        applicationUpdated.getTerm(),
-                                        applicationUpdated.getEmail(),
-                                        tupleData.getT2().name(),
-                                        applicationUpdated.getIdLoanType().toString(),
-                                        tupleData.getT3().getInterestRate(),
-                                        StatusEnum.getById(updateLoanApplicationRequestDto.idStatus()).getName(),
-                                        tupleData.getT2().baseSalary(),
-                                        applicationUpdated.getAmount()
-                                                .multiply(tupleData.getT3().getInterestRate())
-                                                .divide(new BigDecimal(applicationUpdated.getTerm()), RoundingMode.FLOOR)
-                                ));
-                            });
+                    FilteredApplicationDto filteredDto = new FilteredApplicationDto(
+                            applicationUpdated.getId(),
+                            applicationUpdated.getAmount(),
+                            applicationUpdated.getTerm(),
+                            applicationUpdated.getEmail(),
+                            user.name(),
+                            loanType.getName(),
+                            loanType.getInterestRate(),
+                            estado,
+                            user.baseSalary(),
+                            applicationUpdated.getAmount()
+                                    .multiply(loanType.getInterestRate())
+                                    .divide(new BigDecimal(applicationUpdated.getTerm()), RoundingMode.FLOOR)
+                    );
+
+                    if (estado.equalsIgnoreCase(StatusEnum.APPROVED.getName()) || estado.equalsIgnoreCase(StatusEnum.REJECTED.getName())) {
+                        notificationGateway.sendNotification(filteredDto).subscribe();
+                    }
+
+                    return Mono.just(filteredDto);
                 });
     }
 
