@@ -2,6 +2,7 @@ package co.irond.crediya.config;
 
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.model.loantype.gateways.LoanTypeRepository;
+import co.irond.crediya.model.notification.NotificationGateway;
 import co.irond.crediya.model.status.gateways.StatusRepository;
 import co.irond.crediya.model.user.UserGateway;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,11 @@ class UseCasesConfigTest {
         @Bean
         public UserGateway userGateway() {
             return Mockito.mock(UserGateway.class);
+        }
+
+        @Bean
+        public NotificationGateway notificationGateway() {
+            return Mockito.mock(NotificationGateway.class);
         }
     }
 

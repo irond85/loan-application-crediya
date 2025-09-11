@@ -59,7 +59,7 @@ class ApplicationRepositoryAdapterTest {
         application.setIdLoanType(1L);
 
         filteredApplicationDto =
-                new FilteredApplicationDto(new BigDecimal("1000"), 12,
+                new FilteredApplicationDto(1L, new BigDecimal("1000"), 12,
                         "myEmail@email.com", "Sheshin",
                         "Libre inversion", new BigDecimal(2),
                         "Pendiente de revision", new BigDecimal(10000),
@@ -72,7 +72,7 @@ class ApplicationRepositoryAdapterTest {
         when(repository.findById(1L)).thenReturn(Mono.just(applicationEntity));
         when(mapper.map(applicationEntity, Application.class)).thenReturn(application);
 
-        Mono<Application> result = repositoryAdapter.findById(1L);
+        Mono<Application> result = repositoryAdapter.findApplicationById(1L);
 
         StepVerifier.create(result)
                 .expectNextMatches(value -> value.equals(application))

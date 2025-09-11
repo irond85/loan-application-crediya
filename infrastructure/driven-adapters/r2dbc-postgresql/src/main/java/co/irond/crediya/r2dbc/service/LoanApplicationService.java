@@ -4,6 +4,7 @@ import co.irond.crediya.constanst.OperationsMessage;
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.model.dto.LoanApplication;
+import co.irond.crediya.model.dto.UpdateLoanApplicationRequestDto;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.status.Status;
 import co.irond.crediya.r2dbc.dto.LoanApplicationResponse;
@@ -84,6 +85,14 @@ public class LoanApplicationService {
 
     public Mono<Long> countAll(long status) {
         return applicationUseCase.countAll(status);
+    }
+
+    public Mono<FilteredApplicationDto> updateLoanApplication(UpdateLoanApplicationRequestDto loanApplicationRequestDto) {
+        return transactionalOperator.execute(transaction ->
+                        applicationUseCase.updateLoanApplication(loanApplicationRequestDto)
+                ).doOnNext(applicationUpdated -> log.info(OperationsMessage.SAVE_OK.getMessage(), applicationUpdated.toString()))
+                .doOnError(throwable -> log.error(OperationsMessage.OPERATION_ERROR.getMessage(), throwable.getMessage()))
+                .single();
     }
 
 }

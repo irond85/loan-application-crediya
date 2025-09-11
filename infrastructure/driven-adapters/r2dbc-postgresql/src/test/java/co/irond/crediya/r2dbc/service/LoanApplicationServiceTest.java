@@ -3,6 +3,7 @@ package co.irond.crediya.r2dbc.service;
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.model.dto.LoanApplication;
+import co.irond.crediya.model.dto.UpdateLoanApplicationRequestDto;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.r2dbc.dto.PageResponse;
@@ -52,6 +53,7 @@ class LoanApplicationServiceTest {
     private final String emailFromToken = "myEmail@token.com";
     private final Long allRows = 21L;
     private FilteredApplicationDto filteredApplicationDto;
+    private UpdateLoanApplicationRequestDto updateLoanApplicationRequestDto;
     private final long status = 1L;
 
     @BeforeEach
@@ -71,12 +73,13 @@ class LoanApplicationServiceTest {
         loanApplication.setAmount(new BigDecimal("4500000"));
 
         filteredApplicationDto =
-                new FilteredApplicationDto(new BigDecimal("5000"), 12,
+                new FilteredApplicationDto(1L, new BigDecimal("5000"), 12,
                         emailFromToken, "Sheshin",
                         "Libre inversion", new BigDecimal(2),
                         "Pendiente de revision", new BigDecimal(10000),
                         new BigDecimal(100));
 
+        updateLoanApplicationRequestDto = new UpdateLoanApplicationRequestDto(1L, 4L);
     }
 
     @Test
@@ -150,6 +153,24 @@ class LoanApplicationServiceTest {
         StepVerifier.create(result)
                 .expectNextMatches(value -> value.equals(allRows))
                 .verifyComplete();
+    }
+
+    @Test
+    void updateLoanApplication() {
+        when(applicationUseCase.updateLoanApplication(any(UpdateLoanApplicationRequestDto.class)))
+                .thenReturn(Mono.just(filteredApplicationDto));
+
+        when(transactionalOperator.execute(any(TransactionCallback.class)))
+                .thenAnswer(invocation -> {
+                    TransactionCallback<?> callback = invocation.getArgument(0);
+                    return ((Mono<FilteredApplicationDto>) callback.doInTransaction(null)).flux();
+                });
+
+        Mono<FilteredApplicationDto> result = loanApplicationService.updateLoanApplication(updateLoanApplicationRequestDto);
+        StepVerifier.create(result)
+                .expectNext(filteredApplicationDto)
+                .verifyComplete();
+
     }
 
 }

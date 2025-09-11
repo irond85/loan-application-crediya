@@ -2,6 +2,7 @@ package co.irond.crediya.api;
 
 import co.irond.crediya.api.dto.ApiResponseDto;
 import co.irond.crediya.api.dto.LoanApplicationRequestDto;
+import co.irond.crediya.api.dto.UpdateApplicationRequestDto;
 import co.irond.crediya.api.utils.LoanApplicationMapper;
 import co.irond.crediya.api.utils.ValidationService;
 import co.irond.crediya.constanst.OperationsMessage;
@@ -98,6 +99,46 @@ public class Handler {
                             .message(OperationsMessage.RESOURCE_CREATED.getMessage())
                             .data(savedApplication).build();
                     return ServerResponse.status(201).contentType(MediaType.APPLICATION_JSON).bodyValue(response);
+                });
+    }
+
+    @Operation(
+            operationId = "editLoanApplication",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "successful update operation",
+                            content = @Content(
+                                    schema = @Schema(implementation = ApiResponseDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Fields empty or null",
+                            content = @Content(
+                                    schema = @Schema(implementation = ApiResponseDto.class)
+                            )
+                    ),
+            },
+            requestBody = @RequestBody(
+                    content = @Content(
+                            schema = @Schema(implementation = LoanApplicationRequestDto.class)
+                    )
+            )
+    )
+    @PreAuthorize("hasAuthority('ADVISOR')")
+    public Mono<ServerResponse> listenUpdateLoanApplication(ServerRequest serverRequest) {
+        return serverRequest.bodyToMono(UpdateApplicationRequestDto.class)
+                .doOnNext(request -> log.info(OperationsMessage.REQUEST_RECEIVED.getMessage(), request.toString()))
+                .flatMap(validationService::validateObject)
+                .map(loanApplicationMapper::toUpdateLoanApplicationRequestDto)
+                .flatMap(loanApplicationService::updateLoanApplication)
+                .flatMap(updatedLoanApplication -> {
+                    ApiResponseDto<Object> response = ApiResponseDto.builder()
+                            .status("Success")
+                            .message(OperationsMessage.SAVE_OK.getMessage())
+                            .data(updatedLoanApplication).build();
+                    return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(response);
                 });
     }
 }
