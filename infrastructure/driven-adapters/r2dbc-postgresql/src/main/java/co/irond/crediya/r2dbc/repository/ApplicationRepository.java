@@ -13,7 +13,7 @@ public interface ApplicationRepository extends ReactiveCrudRepository<Applicatio
 
     @Query("""
              SELECT
-                 a.id_application AS nro,
+                 a.id_application AS id,
                  a.amount,
                  a.term,
                  a.email,
@@ -34,5 +34,22 @@ public interface ApplicationRepository extends ReactiveCrudRepository<Applicatio
 
     @Query("UPDATE application SET id_status = :status WHERE id_application = :application RETURNING *")
     Mono<Application> updateStatusApplication(long status, long application);
+
+    @Query("""
+            SELECT
+                 a.id_application AS id,
+                 a.amount,
+                 a.term,
+                 a.email,
+                 T.name AS type,
+                 T.interest_rate AS interest,
+                 s.name AS status
+             FROM application a
+             INNER JOIN loan_type AS T ON a.id_loan_type = T.id_loan_type
+             INNER JOIN status AS s ON a.id_status = s.id_status
+             WHERE a.email = :email
+             AND a.id_status = :idStatus
+            """)
+    Flux<FilteredApplicationDto> getApplicationsByUserEmailAndState(String email, Long idStatus);
 
 }

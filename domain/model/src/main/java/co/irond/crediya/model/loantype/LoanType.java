@@ -15,5 +15,5 @@ public class LoanType {
     private BigDecimal minAmount;
     private BigDecimal maxAmount;
     private BigDecimal interestRate;
-    private Boolean automaticValidation;
+    private Boolean autoValid;
 }
