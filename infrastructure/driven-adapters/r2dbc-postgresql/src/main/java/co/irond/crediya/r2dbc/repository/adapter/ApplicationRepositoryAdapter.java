@@ -55,4 +55,9 @@ public class ApplicationRepositoryAdapter extends ReactiveAdapterOperations<
     public Mono<Application> findApplicationById(long id) {
         return findById(id);
     }
+
+    @Override
+    public Flux<FilteredApplicationDto> getApplicationsByUserEmailAndState(String email, Long idStatus) {
+        return repository.getApplicationsByUserEmailAndState(email, idStatus);
+    }
 }

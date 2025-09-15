@@ -2,6 +2,7 @@ package co.irond.crediya.usecase.application;
 
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
+import co.irond.crediya.model.debtcapacity.DebtCapacityGateway;
 import co.irond.crediya.model.dto.*;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
@@ -12,7 +13,6 @@ import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,27 +26,53 @@ public class ApplicationUseCase {
     private final LoanTypeUseCase loanTypeUseCase;
     private final UserGateway userGateway;
     private final NotificationGateway notificationGateway;
+    private final DebtCapacityGateway debtCapacityGateway;
 
-    public Mono<Application> saveApplication(LoanApplication loanApplication) {
+    public Mono<Application> saveApplication(LoanApplication loanApplicationDTO) {
+        Mono<UserDto> userMono = userGateway.getUserByDni(loanApplicationDTO.getDni())
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)));
 
-        Mono<UserDto> userEmailMono = userGateway.getUserByDni(loanApplication.getDni());
-        Mono<Boolean> loanTypeMono = loanTypeUseCase.getLoanTypeById(loanApplication.getIdLoanType()).hasElement();
+        Mono<LoanType> loanTypeMono = loanTypeUseCase.getLoanTypeById(loanApplicationDTO.getIdLoanType())
+                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE)));
 
-        return Mono.zip(userEmailMono, loanTypeMono)
-                .filter(tuple -> true)
-                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_FOUND)))
-                .filter(tuple -> tuple.getT1().email().equalsIgnoreCase(loanApplication.getEmailLogged()))
+        return Mono.zip(userMono, loanTypeMono)
+                .filter(tuple -> tuple.getT1().email().equalsIgnoreCase(loanApplicationDTO.getEmailLogged()))
                 .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.USER_NOT_MATCH)))
-                .filter(Tuple2::getT2)
-                .switchIfEmpty(Mono.error(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE)))
-                .flatMap(tuple ->
-                        applicationRepository.saveApplication(Application.builder()
-                                .email(tuple.getT1().email())
-                                .term(loanApplication.getTerm())
-                                .amount(loanApplication.getAmount())
-                                .idLoanType(loanApplication.getIdLoanType())
-                                .idStatus(1L).build())
-                );
+                .flatMap(tuple -> {
+                    UserDto user = tuple.getT1();
+                    LoanType loanType = tuple.getT2();
+
+                    Application newApplication = Application.builder()
+                            .email(user.email())
+                            .term(loanApplicationDTO.getTerm())
+                            .amount(loanApplicationDTO.getAmount())
+                            .idLoanType(loanApplicationDTO.getIdLoanType())
+                            .idStatus(1L).build();
+
+                    if (Boolean.TRUE.equals(loanType.getAutoValid())) {
+                        return applicationRepository.getApplicationsByUserEmailAndState(user.email(), StatusEnum.APPROVED.getId())
+                                .collectList()
+                                .flatMap(activeApplications -> {
+                                    AutomaticValidationDto validationDto = AutomaticValidationDto.builder()
+                                            .newLoanAmount(newApplication.getAmount())
+                                            .newLoanTerm(newApplication.getTerm())
+                                            .newLoanInterestRate(loanType.getInterestRate())
+                                            .applicantEmail(newApplication.getEmail())
+                                            .applicantSalary(user.baseSalary())
+                                            .activeLoans(activeApplications)
+                                            .build();
+
+                                    return applicationRepository.saveApplication(newApplication)
+                                            .flatMap(savedApplication -> {
+                                                validationDto.setApplicationId(savedApplication.getId());
+                                                return debtCapacityGateway.sendValidationMessage(validationDto)
+                                                        .thenReturn(savedApplication);
+                                            });
+                                });
+                    } else {
+                        return applicationRepository.saveApplication(newApplication);
+                    }
+                });
     }
 
     public Flux<Application> getAllApplications() {
@@ -62,7 +88,7 @@ public class ApplicationUseCase {
                         return userGateway.getUserByEmail(application.email())
                                 .map(user ->
                                         new FilteredApplicationDto(
-                                                application.nro(),
+                                                application.id(),
                                                 application.amount(),
                                                 application.term(),
                                                 application.email(),

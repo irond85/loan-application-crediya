@@ -2,6 +2,7 @@ package co.irond.crediya.usecase.application;
 
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.application.gateways.ApplicationRepository;
+import co.irond.crediya.model.debtcapacity.DebtCapacityGateway;
 import co.irond.crediya.model.dto.*;
 import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -48,12 +50,16 @@ class ApplicationUseCaseTest {
     @Mock
     private NotificationGateway notificationGateway;
 
+    @Mock
+    private DebtCapacityGateway debtCapacityGateway;
+
     private LoanType loanType;
     private Application application;
     private LoanApplication loanApplication;
     private UserDto userDto;
     private FilteredApplicationDto filteredApplicationDto;
     private UpdateLoanApplicationRequestDto updateLoanApplicationRequestDto;
+    private AutomaticValidationDto automaticValidationDto;
 
     private final long status = 1L;
     private String userEmail = "myEmail@mail.com";
@@ -94,6 +100,15 @@ class ApplicationUseCaseTest {
                         new BigDecimal(100));
 
         updateLoanApplicationRequestDto = new UpdateLoanApplicationRequestDto(1L, 4L);
+
+        automaticValidationDto = new AutomaticValidationDto();
+        automaticValidationDto.setApplicationId(1L);
+        automaticValidationDto.setApplicantEmail(userEmail);
+        automaticValidationDto.setApplicantSalary(BigDecimal.TEN);
+        automaticValidationDto.setNewLoanAmount(BigDecimal.ONE);
+        automaticValidationDto.setNewLoanInterestRate(BigDecimal.ONE);
+        automaticValidationDto.setNewLoanTerm(12);
+        automaticValidationDto.setActiveLoans(List.of(filteredApplicationDto));
     }
 
     @Test
@@ -110,6 +125,9 @@ class ApplicationUseCaseTest {
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenReturn(Mono.just(loanType));
         when(userGateway.getUserByDni(anyString())).thenReturn(Mono.just(userDto));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(application));
+        when(applicationRepository.getApplicationsByUserEmailAndState(anyString(), anyLong()))
+                .thenReturn(Flux.just(filteredApplicationDto));
+        when(debtCapacityGateway.sendValidationMessage(any(AutomaticValidationDto.class))).thenReturn(Mono.empty());
 
         Mono<Application> response = applicationUseCase.saveApplication(loanApplication);
 
@@ -120,12 +138,15 @@ class ApplicationUseCaseTest {
         verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
         verify(userGateway, times(1)).getUserByDni(anyString());
         verify(applicationRepository, times(1)).saveApplication(any(Application.class));
+        verify(applicationRepository, times(1)).getApplicationsByUserEmailAndState(anyString(), anyLong());
+        verify(debtCapacityGateway, times(1)).sendValidationMessage(any(AutomaticValidationDto.class));
     }
 
     @Test
     void saveApplication_shouldReturnException() {
         application.setIdLoanType(2L);
 
+        when(userGateway.getUserByDni(anyString())).thenReturn(Mono.just(userDto));
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenThrow(new CrediYaException(ErrorCode.INVALID_LOAN_TYPE));
 
         Executable executable = () -> applicationUseCase.saveApplication(loanApplication);
@@ -178,6 +199,7 @@ class ApplicationUseCaseTest {
     void saveApplication_shouldReturnExceptionEmail() {
         application.setEmail("correo@correo.com");
 
+        when(userGateway.getUserByDni(anyString())).thenReturn(Mono.just(userDto));
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenThrow(new CrediYaException(ErrorCode.USER_NOT_MATCH));
 
         Executable executable = () -> applicationUseCase.saveApplication(loanApplication);
@@ -185,6 +207,7 @@ class ApplicationUseCaseTest {
         CrediYaException exception = assertThrows(CrediYaException.class, executable);
         assertEquals("Can't do a loan application for different user.", exception.getMessage());
 
+        verify(userGateway, times(1)).getUserByDni(anyString());
         verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
         verify(applicationRepository, times(0)).saveApplication(any(Application.class));
     }

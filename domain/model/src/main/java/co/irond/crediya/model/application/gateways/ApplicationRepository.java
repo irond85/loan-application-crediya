@@ -21,4 +21,6 @@ public interface ApplicationRepository {
     Mono<Application> updateLoanApplication(UpdateLoanApplicationRequestDto updateLoanApplicationRequestDto);
 
     Mono<Application> findApplicationById(long id);
+
+    Flux<FilteredApplicationDto> getApplicationsByUserEmailAndState(String email, Long idStatus);
 }

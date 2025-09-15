@@ -49,7 +49,7 @@ class LoanTypeRepositoryAdapterTest {
         loanType.setMaxAmount(new BigDecimal("15000000"));
         loanType.setName("Libre inversion");
         loanType.setInterestRate(new BigDecimal("1.7"));
-        loanType.setAutomaticValidation(true);
+        loanType.setAutoValid(true);
     }
 
     @Test
