@@ -30,3 +30,9 @@ include ':constanst'
 project(':constanst').projectDir = file('./infrastructure/helpers/constanst')
 include ':security'
 project(':security').projectDir = file('./infrastructure/driven-adapters/security')
+include ':metrics'
+project(':metrics').projectDir = file('./infrastructure/helpers/metrics')
+include ':sqs-sender'
+project(':sqs-sender').projectDir = file('./infrastructure/driven-adapters/sqs-sender')
+include ':sqs-listener'
+project(':sqs-listener').projectDir = file('./infrastructure/entry-points/sqs-listener')

@@ -2,6 +2,7 @@ package co.irond.crediya.r2dbc.repository.adapter;
 
 import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.FilteredApplicationDto;
+import co.irond.crediya.model.dto.UpdateLoanApplicationRequestDto;
 import co.irond.crediya.r2dbc.entity.ApplicationEntity;
 import co.irond.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import co.irond.crediya.r2dbc.repository.ApplicationRepository;
@@ -43,5 +44,20 @@ public class ApplicationRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<Long> countAll(long status) {
         return repository.countAll(status);
+    }
+
+    @Override
+    public Mono<Application> updateLoanApplication(UpdateLoanApplicationRequestDto updateLoanApplicationRequestDto) {
+        return repository.updateStatusApplication(updateLoanApplicationRequestDto.idStatus(), updateLoanApplicationRequestDto.nroApplication());
+    }
+
+    @Override
+    public Mono<Application> findApplicationById(long id) {
+        return findById(id);
+    }
+
+    @Override
+    public Flux<FilteredApplicationDto> getApplicationsByUserEmailAndState(String email, Long idStatus) {
+        return repository.getApplicationsByUserEmailAndState(email, idStatus);
     }
 }

@@ -1,5 +1,6 @@
 package co.irond.crediya.r2dbc.repository;
 
+import co.irond.crediya.model.application.Application;
 import co.irond.crediya.model.dto.FilteredApplicationDto;
 import co.irond.crediya.r2dbc.entity.ApplicationEntity;
 import org.springframework.data.r2dbc.repository.Query;
@@ -12,6 +13,7 @@ public interface ApplicationRepository extends ReactiveCrudRepository<Applicatio
 
     @Query("""
              SELECT
+                 a.id_application AS id,
                  a.amount,
                  a.term,
                  a.email,
@@ -29,5 +31,25 @@ public interface ApplicationRepository extends ReactiveCrudRepository<Applicatio
 
     @Query("SELECT COUNT(*) FROM application a WHERE a.id_status = :status")
     Mono<Long> countAll(long status);
+
+    @Query("UPDATE application SET id_status = :status WHERE id_application = :application RETURNING *")
+    Mono<Application> updateStatusApplication(long status, long application);
+
+    @Query("""
+            SELECT
+                 a.id_application AS id,
+                 a.amount,
+                 a.term,
+                 a.email,
+                 T.name AS type,
+                 T.interest_rate AS interest,
+                 s.name AS status
+             FROM application a
+             INNER JOIN loan_type AS T ON a.id_loan_type = T.id_loan_type
+             INNER JOIN status AS s ON a.id_status = s.id_status
+             WHERE a.email = :email
+             AND a.id_status = :idStatus
+            """)
+    Flux<FilteredApplicationDto> getApplicationsByUserEmailAndState(String email, Long idStatus);
 
 }
