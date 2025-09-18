@@ -8,6 +8,7 @@ import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.notification.NotificationGateway;
+import co.irond.crediya.model.reports.ReportGateway;
 import co.irond.crediya.model.user.UserGateway;
 import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class ApplicationUseCase {
     private final UserGateway userGateway;
     private final NotificationGateway notificationGateway;
     private final DebtCapacityGateway debtCapacityGateway;
+    private final ReportGateway reportGateway;
 
     public Mono<Application> saveApplication(LoanApplication loanApplicationDTO) {
         Mono<UserDto> userMono = userGateway.getUserByDni(loanApplicationDTO.getDni())
@@ -153,6 +155,9 @@ public class ApplicationUseCase {
 
                     if (estado.equalsIgnoreCase(StatusEnum.APPROVED.getName()) || estado.equalsIgnoreCase(StatusEnum.REJECTED.getName())) {
                         notificationGateway.sendNotification(filteredDto).subscribe();
+                        if (estado.equalsIgnoreCase(StatusEnum.APPROVED.getName())) {
+                            reportGateway.send(new ReportRequestDto("loanApplicationsApproved", applicationUpdated.getAmount())).subscribe();
+                        }
                     }
 
                     return Mono.just(filteredDto);

@@ -8,6 +8,7 @@ import co.irond.crediya.model.exceptions.CrediYaException;
 import co.irond.crediya.model.exceptions.ErrorCode;
 import co.irond.crediya.model.loantype.LoanType;
 import co.irond.crediya.model.notification.NotificationGateway;
+import co.irond.crediya.model.reports.ReportGateway;
 import co.irond.crediya.model.user.UserGateway;
 import co.irond.crediya.usecase.loantype.LoanTypeUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,9 @@ class ApplicationUseCaseTest {
 
     @Mock
     private DebtCapacityGateway debtCapacityGateway;
+
+    @Mock
+    private ReportGateway reportGateway;
 
     private LoanType loanType;
     private Application application;
@@ -113,15 +117,6 @@ class ApplicationUseCaseTest {
 
     @Test
     void saveApplication_shouldSave() {
-        loanType = new LoanType(
-                1L,
-                "Libre Inversion",
-                BigDecimal.ONE,
-                BigDecimal.TEN,
-                BigDecimal.ONE,
-                true
-        );
-
         when(loanTypeUseCase.getLoanTypeById(anyLong())).thenReturn(Mono.just(loanType));
         when(userGateway.getUserByDni(anyString())).thenReturn(Mono.just(userDto));
         when(applicationRepository.saveApplication(any(Application.class))).thenReturn(Mono.just(application));
@@ -220,6 +215,7 @@ class ApplicationUseCaseTest {
         when(applicationRepository.updateLoanApplication(any(UpdateLoanApplicationRequestDto.class)))
                 .thenReturn(Mono.just(application));
         when(notificationGateway.sendNotification(any(FilteredApplicationDto.class))).thenReturn(Mono.empty());
+        when(reportGateway.send(any(ReportRequestDto.class))).thenReturn(Mono.empty());
 
         Mono<FilteredApplicationDto> response = applicationUseCase.updateLoanApplication(updateLoanApplicationRequestDto);
 
@@ -233,6 +229,7 @@ class ApplicationUseCaseTest {
         verify(loanTypeUseCase, times(1)).getLoanTypeById(anyLong());
         verify(applicationRepository, times(1)).updateLoanApplication(any(UpdateLoanApplicationRequestDto.class));
         verify(notificationGateway, times(1)).sendNotification(any(FilteredApplicationDto.class));
+        verify(reportGateway, times(1)).send(any(ReportRequestDto.class));
     }
 
     @Test
