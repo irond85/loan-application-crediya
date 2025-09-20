@@ -94,6 +94,15 @@ tasks.register('jacocoMergedReport', JacocoReport) {
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: [
+                '**/api/',
+                '/co/irond/crediya/security/',
+                '/co/irond/crediya/sqs/',
+                '**/consumer/',
+                '**/metrics/'
+        ])
+    }))
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
         xml.setRequired true

@@ -4,6 +4,7 @@ import co.irond.crediya.model.application.gateways.ApplicationRepository;
 import co.irond.crediya.model.debtcapacity.DebtCapacityGateway;
 import co.irond.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.irond.crediya.model.notification.NotificationGateway;
+import co.irond.crediya.model.reports.ReportGateway;
 import co.irond.crediya.model.status.gateways.StatusRepository;
 import co.irond.crediya.model.user.UserGateway;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,11 @@ class UseCasesConfigTest {
         @Bean
         public DebtCapacityGateway debtCapacityGateway() {
             return Mockito.mock(DebtCapacityGateway.class);
+        }
+
+        @Bean
+        public ReportGateway reportGateway() {
+            return Mockito.mock(ReportGateway.class);
         }
     }
 
